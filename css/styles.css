@@ -373,24 +373,18 @@ main {
   font-size: 13px;
 }
 
-.detail-panel {
+.detail-box {
   margin: 0 0 14px;
   border: 2px solid #1f3864;
-  border-radius: 16px;
-  padding: 16px 14px;
-  background: #fafaf6;
-  display: grid;
-  gap: 10px;
-  text-align: center;
+  border-radius: 14px;
+  padding: 0;
+  background: #eaf1fb;
+  display: block;
 }
 
-.detail-panel .save-title {
-  text-align: center;
-  width: 100%;
-}
-
-.detail-panel .save-help {
-  text-align: center;
+.detail-box .save-title {
+  margin: 0;
+  text-align: left;
 }
 
 .detail-actions {
