@@ -529,49 +529,93 @@
   }
 
   function renderList() {
-    ui.listCount.textContent = state.items.length + "개";
+    var todoIdx = [];
+    var doneIdx = [];
+    state.items.forEach(function (item, i) {
+      if (item.done) doneIdx.push(i);
+      else todoIdx.push(i);
+    });
+    ui.listCount.textContent =
+      "할 일 " + todoIdx.length + " · 완료 " + doneIdx.length;
     ui.listEmpty.hidden = state.items.length > 0;
     if (!state.items.length) {
       ui.studyList.innerHTML = "";
       return;
     }
-    ui.studyList.innerHTML = state.items
-      .map(function (item, i) {
+
+    function cardHtml(item, i, group, n) {
+      var pos = group.indexOf(i);
+      return (
+        '<div class="tab' +
+        (item.done ? " done" : "") +
+        '">' +
+        "<strong>" +
+        (pos + 1) +
+        ". " +
+        escapeHtml(item.title) +
+        "</strong>" +
+        '<span class="meta">' +
+        escapeHtml(programById(item.programId).name) +
+        (item.note
+          ? " · " +
+            escapeHtml(item.note.replace(/\s+/g, " ").slice(0, 40)) +
+            (item.note.length > 40 ? "…" : "")
+          : "") +
+        "</span>" +
+        '<div class="tab-actions">' +
+        '<button type="button" class="mini" data-open="' +
+        i +
+        '">열기</button>' +
+        (item.done
+          ? '<button type="button" class="mini" data-undone="' +
+            i +
+            '">다시 공부</button>'
+          : "") +
+        '<button type="button" class="mini" data-up="' +
+        i +
+        '"' +
+        (pos === 0 ? " disabled" : "") +
+        ">↑</button>" +
+        '<button type="button" class="mini" data-down="' +
+        i +
+        '"' +
+        (pos === n - 1 ? " disabled" : "") +
+        ">↓</button>" +
+        '<button type="button" class="mini danger" data-del="' +
+        i +
+        '">삭제</button>' +
+        "</div></div>"
+      );
+    }
+
+    function sectionHtml(title, group) {
+      if (!group.length) {
         return (
-          '<div class="tab' +
-          (item.done ? " done" : "") +
-          '">' +
-          "<strong>" +
-          (i + 1) +
-          ". " +
-          escapeHtml(item.title) +
-          "</strong>" +
-          '<span class="meta">' +
-          escapeHtml(programById(item.programId).name) +
-          (item.note ? " · " + escapeHtml(item.note) : "") +
-          (item.done ? " · 완료" : "") +
-          "</span>" +
-          '<div class="tab-actions">' +
-          '<button type="button" class="mini" data-open="' +
-          i +
-          '">열기</button>' +
-          '<button type="button" class="mini" data-up="' +
-          i +
-          '"' +
-          (i === 0 ? " disabled" : "") +
-          ">↑</button>" +
-          '<button type="button" class="mini" data-down="' +
-          i +
-          '"' +
-          (i === state.items.length - 1 ? " disabled" : "") +
-          ">↓</button>" +
-          '<button type="button" class="mini danger" data-del="' +
-          i +
-          '">삭제</button>' +
-          "</div></div>"
+          '<div class="list-section">' +
+          '<div class="list-section-title">' +
+          title +
+          ' <span class="list-section-count">0</span></div>' +
+          '<p class="list-section-empty">없음</p></div>'
         );
-      })
-      .join("");
+      }
+      return (
+        '<div class="list-section">' +
+        '<div class="list-section-title">' +
+        title +
+        ' <span class="list-section-count">' +
+        group.length +
+        "</span></div>" +
+        group
+          .map(function (i) {
+            return cardHtml(state.items[i], i, group, group.length);
+          })
+          .join("") +
+        "</div>"
+      );
+    }
+
+    ui.studyList.innerHTML =
+      sectionHtml("공부할 목록", todoIdx) + sectionHtml("공부 완료", doneIdx);
   }
 
   function renderPrograms() {
@@ -589,11 +633,20 @@
   }
 
   function moveItem(index, dir) {
-    var j = index + dir;
-    if (j < 0 || j >= state.items.length) return;
+    var item = state.items[index];
+    if (!item) return;
+    var group = [];
+    state.items.forEach(function (it, i) {
+      if (!!it.done === !!item.done) group.push(i);
+    });
+    var pos = group.indexOf(index);
+    var targetPos = pos + dir;
+    if (targetPos < 0 || targetPos >= group.length) return;
+    var j = group[targetPos];
     var list = state.items.slice();
-    var item = list.splice(index, 1)[0];
-    list.splice(j, 0, touchItem(item));
+    var tmp = list[index];
+    list[index] = touchItem(list[j]);
+    list[j] = touchItem(tmp);
     state.items = list;
     saveState();
     renderList();
@@ -644,9 +697,18 @@
     var up = e.target.closest("[data-up]");
     var down = e.target.closest("[data-down]");
     var del = e.target.closest("[data-del]");
+    var undone = e.target.closest("[data-undone]");
     if (open) openItem(Number(open.getAttribute("data-open")));
     if (up) moveItem(Number(up.getAttribute("data-up")), -1);
     if (down) moveItem(Number(down.getAttribute("data-down")), 1);
+    if (undone) {
+      var uiIndex = Number(undone.getAttribute("data-undone"));
+      if (state.items[uiIndex]) {
+        state.items[uiIndex] = touchItem(state.items[uiIndex], { done: false });
+        saveState();
+        renderList();
+      }
+    }
     if (del) {
       if (confirm("이 회차를 목록에서 삭제할까요?")) {
         state.items.splice(Number(del.getAttribute("data-del")), 1);
