@@ -508,6 +508,97 @@ main {
   margin-top: 14px;
 }
 
+.memo-box {
+  margin-top: 14px;
+  border: 2px solid #1f3864;
+  border-radius: 14px;
+  padding: 14px;
+  background: #eaf1fb;
+  display: grid;
+  gap: 8px;
+}
+
+.memo-box .save-title {
+  margin: 0;
+}
+
+.memo-help {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #3d4f73;
+}
+
+.memo-lang {
+  display: flex;
+  gap: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1f3864;
+}
+
+.memo-lang label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.memo-edit {
+  margin-top: 0;
+  display: grid;
+  gap: 4px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #1f3864;
+  text-align: left;
+}
+
+.memo-edit textarea {
+  width: 100%;
+  padding: 12px 10px;
+  border-radius: 10px;
+  border: 1.5px solid #b7c6e0;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 400;
+  color: #1f3864;
+  background: #fff;
+  resize: vertical;
+  min-height: 96px;
+  line-height: 1.45;
+}
+
+.memo-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.memo-actions .btn {
+  flex: 1;
+}
+
+.stt-status {
+  margin: 0;
+  min-height: 1.2em;
+  text-align: center;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #1f3864;
+}
+
+.stt-status.is-error {
+  color: #b03a2e;
+}
+
+.stt-status.is-ok {
+  color: #2e7d32;
+}
+
+.stt-status.is-listening {
+  color: #b03a2e;
+}
+
 .nav-row {
   display: flex;
   justify-content: space-between;

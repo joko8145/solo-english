@@ -120,17 +120,45 @@
               녹음 종료
             </button>
           </div>
-          <p class="rec-hint">따라 말한 목소리를 남겨 두고 싶을 때 사용하세요.</p>
+          <p class="rec-hint">발음 확인용입니다. 문장 저장은 아래 메모를 쓰세요.</p>
           <audio id="playback" class="rec-audio" controls hidden></audio>
         </div>
 
-        <label class="memo-edit">
-          메모 수정
-          <input id="edit-note" type="text" placeholder="메모" />
-        </label>
-        <button type="button" class="btn btn-nav btn-block-soft" id="btn-save-note">
-          메모 저장
-        </button>
+        <div class="memo-box">
+          <div class="save-title">메모</div>
+          <p class="memo-help">
+            기억에 남은 문장을 적거나, 말로 말하면 글자로 넣습니다.<br />
+            Chrome·Edge에서 잘 됩니다. (음성은 브라우저 음성인식으로 처리될 수 있습니다)
+          </p>
+          <div class="memo-lang">
+            <label>
+              <input type="radio" name="stt-lang" value="en-US" checked />
+              영어
+            </label>
+            <label>
+              <input type="radio" name="stt-lang" value="ko-KR" />
+              한국어
+            </label>
+          </div>
+          <label class="memo-edit">
+            메모 내용
+            <textarea
+              id="edit-note"
+              rows="4"
+              placeholder="예: Could you say that again, please?"
+            ></textarea>
+          </label>
+          <div class="memo-actions">
+            <button type="button" class="btn btn-navy" id="btn-stt">말로 메모</button>
+            <button type="button" class="btn btn-nav sync-half" id="btn-stt-stop" disabled>
+              말하기 끝
+            </button>
+          </div>
+          <p class="stt-status" id="stt-status" aria-live="polite"></p>
+          <button type="button" class="btn btn-green btn-block-soft" id="btn-save-note">
+            메모 저장
+          </button>
+        </div>
 
         <div class="nav-row end-row">
           <button type="button" class="btn btn-nav" id="btn-done">공부 완료</button>

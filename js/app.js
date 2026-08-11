@@ -352,6 +352,9 @@
     btnOpenVideo: $("#btn-open-video"),
     editNote: $("#edit-note"),
     btnSaveNote: $("#btn-save-note"),
+    btnStt: $("#btn-stt"),
+    btnSttStop: $("#btn-stt-stop"),
+    sttStatus: $("#stt-status"),
     btnRec: $("#btn-rec"),
     btnRecStop: $("#btn-rec-stop"),
     playback: $("#playback"),
@@ -365,6 +368,8 @@
   var mediaRecorder = null;
   var recordedChunks = [];
   var objectUrl = null;
+  var speechRec = null;
+  var sttBaseNote = "";
 
   refreshTokenUI();
 
@@ -372,7 +377,108 @@
     return currentIndex >= 0 ? state.items[currentIndex] : null;
   }
 
+  function setSttStatus(msg, cls) {
+    ui.sttStatus.textContent = msg || "";
+    ui.sttStatus.className = "stt-status" + (cls ? " " + cls : "");
+  }
+
+  function selectedSttLang() {
+    var el = document.querySelector('input[name="stt-lang"]:checked');
+    return el ? el.value : "en-US";
+  }
+
+  function saveNoteFromEditor() {
+    var item = currentItem();
+    if (!item) return;
+    item = touchItem(item, { note: ui.editNote.value.trim() });
+    state.items[currentIndex] = item;
+    saveState();
+    if (item.note) {
+      ui.detailNote.hidden = false;
+      ui.detailNote.textContent = item.note;
+    } else {
+      ui.detailNote.hidden = true;
+    }
+  }
+
+  function stopStt(quiet) {
+    if (speechRec) {
+      try {
+        speechRec.onend = null;
+        speechRec.onerror = null;
+        speechRec.onresult = null;
+        speechRec.stop();
+      } catch (e) {}
+      speechRec = null;
+    }
+    ui.btnStt.disabled = false;
+    ui.btnSttStop.disabled = true;
+    if (!quiet) setSttStatus("말하기 끝 · 「메모 저장」을 눌러 주세요.", "is-ok");
+  }
+
+  function startStt() {
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      setSttStatus(
+        "이 브라우저는 말로 메모를 지원하지 않습니다. Chrome·Edge를 쓰세요.",
+        "is-error"
+      );
+      return;
+    }
+    stopRec();
+    stopStt(true);
+    sttBaseNote = ui.editNote.value;
+    speechRec = new SR();
+    speechRec.lang = selectedSttLang();
+    speechRec.continuous = true;
+    speechRec.interimResults = true;
+    speechRec.onresult = function (event) {
+      var finalParts = [];
+      var interim = "";
+      for (var i = 0; i < event.results.length; i++) {
+        var r = event.results[i];
+        if (r.isFinal) finalParts.push(r[0].transcript.trim());
+        else interim += r[0].transcript;
+      }
+      var finals = finalParts.filter(Boolean).join("\n");
+      var next = sttBaseNote.trim();
+      if (finals) next = next ? next + "\n" + finals : finals;
+      if (interim.trim()) next = next ? next + "\n" + interim.trim() : interim.trim();
+      ui.editNote.value = next;
+      setSttStatus("듣는 중… " + (interim.trim() || finals || ""), "is-listening");
+    };
+    speechRec.onerror = function (event) {
+      var code = event.error || "";
+      if (code === "not-allowed") {
+        setSttStatus("마이크 권한을 허용해 주세요.", "is-error");
+      } else if (code === "no-speech") {
+        setSttStatus("말이 감지되지 않았습니다. 다시 눌러 보세요.", "is-error");
+      } else if (code !== "aborted") {
+        setSttStatus("음성 인식 오류: " + code, "is-error");
+      }
+      stopStt(true);
+    };
+    speechRec.onend = function () {
+      speechRec = null;
+      ui.btnStt.disabled = false;
+      ui.btnSttStop.disabled = true;
+      if (ui.sttStatus.classList.contains("is-listening")) {
+        setSttStatus("말하기 끝 · 「메모 저장」을 눌러 주세요.", "is-ok");
+      }
+    };
+    try {
+      speechRec.start();
+      ui.btnStt.disabled = true;
+      ui.btnSttStop.disabled = false;
+      setSttStatus("듣는 중… 문장을 말해 보세요.", "is-listening");
+    } catch (e) {
+      setSttStatus("음성 인식을 시작하지 못했습니다.", "is-error");
+      stopStt(true);
+    }
+  }
+
   function showList() {
+    stopStt(true);
     ui.viewList.hidden = false;
     ui.viewDetail.hidden = true;
     currentIndex = -1;
@@ -381,6 +487,8 @@
 
   function openItem(index) {
     if (!state.items[index]) return;
+    stopStt(true);
+    setSttStatus("");
     currentIndex = index;
     var item = state.items[index];
     state.lastId = item.id;
@@ -489,6 +597,7 @@
       alert("이 브라우저에서는 녹음을 지원하지 않습니다.");
       return;
     }
+    stopStt(true);
     navigator.mediaDevices
       .getUserMedia({ audio: true })
       .then(function (stream) {
@@ -622,17 +731,13 @@
   ui.btnBack.addEventListener("click", showList);
   ui.btnOpenVideo.addEventListener("click", openVideo);
   ui.btnSaveNote.addEventListener("click", function () {
-    var item = currentItem();
-    if (!item) return;
-    item = touchItem(item, { note: ui.editNote.value.trim() });
-    state.items[currentIndex] = item;
-    saveState();
-    if (item.note) {
-      ui.detailNote.hidden = false;
-      ui.detailNote.textContent = item.note;
-    } else {
-      ui.detailNote.hidden = true;
-    }
+    stopStt(true);
+    saveNoteFromEditor();
+    setSttStatus("메모를 저장했습니다.", "is-ok");
+  });
+  ui.btnStt.addEventListener("click", startStt);
+  ui.btnSttStop.addEventListener("click", function () {
+    stopStt(false);
   });
   ui.btnRec.addEventListener("click", startRec);
   ui.btnRecStop.addEventListener("click", stopRec);
