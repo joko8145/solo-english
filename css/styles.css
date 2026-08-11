@@ -380,23 +380,36 @@ main {
   padding: 16px 14px;
   background: #fafaf6;
   display: grid;
-  gap: 8px;
+  gap: 10px;
   text-align: center;
 }
 
-.detail-panel .btn-block {
-  margin-bottom: 0;
+.detail-panel .save-title {
+  text-align: center;
+  width: 100%;
 }
 
-.detail-panel .quiet-out {
+.detail-panel .save-help {
+  text-align: center;
+}
+
+.detail-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.detail-actions .btn {
+  width: 100%;
   margin: 0;
+  text-align: center;
+  text-decoration: none;
+  box-sizing: border-box;
 }
 
-.quiet-out {
-  display: inline-block;
+a.btn.btn-nav {
+  display: block;
+  line-height: 1.2;
   color: #1f3864;
-  font-weight: 700;
-  font-size: 13px;
 }
 
 .btn {
