@@ -227,14 +227,29 @@
     });
   }
 
+  function rememberTokenFromInput() {
+    var typed = (ui.syncToken.value || "").trim();
+    if (typed) {
+      syncMeta.token = typed;
+      saveSyncMeta();
+    }
+    return (syncMeta.token || "").trim();
+  }
+
+  function refreshTokenUI() {
+    var saved = !!(syncMeta.token && syncMeta.token.trim());
+    ui.syncTokenLabel.hidden = saved;
+    ui.syncTokenSaved.hidden = !saved;
+    if (saved) ui.syncToken.value = "";
+  }
+
   function pushToGist() {
-    var token = (ui.syncToken.value || syncMeta.token || "").trim();
+    var token = rememberTokenFromInput();
     if (!token) {
       setSyncStatus("토큰을 입력해 주세요.", "is-error");
+      refreshTokenUI();
       return;
     }
-    syncMeta.token = token;
-    saveSyncMeta();
     setSyncStatus("올리는 중…");
     findSoloGist(token)
       .then(function (found) {
@@ -268,6 +283,7 @@
       .then(function (gistId) {
         syncMeta.gistId = gistId;
         saveSyncMeta();
+        refreshTokenUI();
         setSyncStatus("올림 완료 · 다른 기기에서 「받기」하세요.", "is-ok");
       })
       .catch(function (err) {
@@ -276,13 +292,12 @@
   }
 
   function pullFromGist() {
-    var token = (ui.syncToken.value || syncMeta.token || "").trim();
+    var token = rememberTokenFromInput();
     if (!token) {
       setSyncStatus("토큰을 입력해 주세요.", "is-error");
+      refreshTokenUI();
       return;
     }
-    syncMeta.token = token;
-    saveSyncMeta();
     setSyncStatus("받는 중…");
     var chain = syncMeta.gistId
       ? Promise.resolve({ id: syncMeta.gistId })
@@ -296,6 +311,7 @@
       })
       .then(function (payload) {
         applyRemotePayload(payload, "merge");
+        refreshTokenUI();
         setSyncStatus(
           "받기 완료 · 목록 " + state.items.length + "개로 맞춤",
           "is-ok"
@@ -319,6 +335,10 @@
     addDone: $("#add-done"),
     programRow: $("#program-row"),
     syncToken: $("#sync-token"),
+    syncTokenLabel: $("#sync-token-label"),
+    syncTokenSaved: $("#sync-token-saved"),
+    btnTokenChange: $("#btn-token-change"),
+    btnTokenClear: $("#btn-token-clear"),
     syncStatus: $("#sync-status"),
     btnSyncPush: $("#btn-sync-push"),
     btnSyncPull: $("#btn-sync-pull"),
@@ -346,7 +366,7 @@
   var recordedChunks = [];
   var objectUrl = null;
 
-  ui.syncToken.value = syncMeta.token || "";
+  refreshTokenUI();
 
   function currentItem() {
     return currentIndex >= 0 ? state.items[currentIndex] : null;
@@ -555,9 +575,20 @@
 
   ui.btnSyncPush.addEventListener("click", pushToGist);
   ui.btnSyncPull.addEventListener("click", pullFromGist);
-  ui.syncToken.addEventListener("change", function () {
-    syncMeta.token = ui.syncToken.value.trim();
+  ui.btnTokenChange.addEventListener("click", function () {
+    ui.syncTokenSaved.hidden = true;
+    ui.syncTokenLabel.hidden = false;
+    ui.syncToken.value = "";
+    ui.syncToken.focus();
+  });
+  ui.btnTokenClear.addEventListener("click", function () {
+    if (!confirm("이 기기에서 저장된 토큰을 지울까요?")) return;
+    syncMeta.token = "";
+    syncMeta.gistId = "";
     saveSyncMeta();
+    ui.syncToken.value = "";
+    refreshTokenUI();
+    setSyncStatus("토큰을 지웠습니다.", "is-ok");
   });
 
   ui.btnExport.addEventListener("click", function () {

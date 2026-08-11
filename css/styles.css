@@ -260,6 +260,36 @@ main {
   font-weight: 400;
 }
 
+.sync-token-saved {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1.5px solid #b7c6e0;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1f3864;
+}
+
+.sync-token-saved[hidden] {
+  display: none;
+}
+
+.sync-token-saved span {
+  flex: 1;
+  min-width: 140px;
+}
+
+.sync-token-btn {
+  width: auto;
+  margin-top: 0;
+  padding: 8px 12px;
+  font-size: 12.5px;
+}
+
 .sync-actions {
   display: flex;
   gap: 8px;

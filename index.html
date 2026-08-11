@@ -33,10 +33,19 @@
             토큰: GitHub → Settings → Developer settings → Personal access tokens<br />
             (classic) <b>gist</b> 권한만 켜서 만드세요.
           </p>
-          <label>
+          <label id="sync-token-label">
             GitHub 토큰
             <input id="sync-token" type="password" autocomplete="off" placeholder="ghp_..." />
           </label>
+          <div class="sync-token-saved" id="sync-token-saved" hidden>
+            <span>토큰 저장됨 · 화면에 표시하지 않습니다</span>
+            <button type="button" class="btn btn-nav sync-token-btn" id="btn-token-change">
+              변경
+            </button>
+            <button type="button" class="btn btn-nav sync-token-btn" id="btn-token-clear">
+              지우기
+            </button>
+          </div>
           <div class="sync-actions">
             <button type="button" class="btn btn-navy" id="btn-sync-push">올리기</button>
             <button type="button" class="btn btn-green sync-half" id="btn-sync-pull">받기</button>
