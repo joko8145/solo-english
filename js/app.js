@@ -347,10 +347,10 @@
     btnBack: $("#btn-back"),
     detailTitle: $("#detail-title"),
     detailMeta: $("#detail-meta"),
-    detailNote: $("#detail-note"),
     detailLink: $("#detail-link"),
     btnOpenVideo: $("#btn-open-video"),
     editNote: $("#edit-note"),
+    memoSummaryTitle: $("#memo-summary-title"),
     btnSaveNote: $("#btn-save-note"),
     btnStt: $("#btn-stt"),
     btnSttStop: $("#btn-stt-stop"),
@@ -408,12 +408,19 @@
     item = touchItem(item, { note: ui.editNote.value.trim() });
     state.items[currentIndex] = item;
     saveState();
-    if (item.note) {
-      ui.detailNote.hidden = false;
-      ui.detailNote.textContent = item.note;
-    } else {
-      ui.detailNote.hidden = true;
+    updateMemoSummary(item.note);
+  }
+
+  function updateMemoSummary(note) {
+    if (!ui.memoSummaryTitle) return;
+    var t = String(note || "").trim();
+    if (!t) {
+      ui.memoSummaryTitle.textContent = "메모";
+      return;
     }
+    var one = t.replace(/\s+/g, " ");
+    if (one.length > 28) one = one.slice(0, 28) + "…";
+    ui.memoSummaryTitle.textContent = "메모 · " + one;
   }
 
   function stopStt(quiet) {
@@ -516,14 +523,8 @@
       (item.createdAt
         ? " · " + new Date(item.createdAt).toLocaleDateString("ko-KR")
         : "");
-    if (item.note) {
-      ui.detailNote.hidden = false;
-      ui.detailNote.textContent = item.note;
-    } else {
-      ui.detailNote.hidden = true;
-      ui.detailNote.textContent = "";
-    }
     ui.editNote.value = item.note || "";
+    updateMemoSummary(item.note);
     ui.detailLink.href = item.url;
   }
 

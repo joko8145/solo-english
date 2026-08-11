@@ -368,55 +368,35 @@ main {
 }
 
 .practice-meta {
-  margin: 0 0 8px;
+  margin: 0 0 12px;
   color: #8a8a85;
   font-size: 13px;
 }
 
-.detail-note {
-  margin: 0 0 12px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: #fff;
-  border: 1.5px solid #e0dccf;
-  color: #4a4a44;
-  font-size: 14px;
-  line-height: 1.45;
-  white-space: pre-wrap;
+.detail-panel {
+  margin: 0 0 14px;
+  border: 2px solid #1f3864;
+  border-radius: 16px;
+  padding: 16px 14px;
+  background: #fafaf6;
+  display: grid;
+  gap: 8px;
+  text-align: center;
+}
+
+.detail-panel .btn-block {
+  margin-bottom: 0;
+}
+
+.detail-panel .quiet-out {
+  margin: 0;
 }
 
 .quiet-out {
   display: inline-block;
-  margin: -6px 0 14px;
   color: #1f3864;
   font-weight: 700;
   font-size: 13px;
-}
-
-.card {
-  background: #fff;
-  border: 2px solid #000;
-  border-radius: 14px;
-  padding: 22px 20px;
-  text-align: center;
-}
-
-.tip-card {
-  margin-bottom: 14px;
-}
-
-.tip-title {
-  margin: 0 0 8px;
-  font-size: 15px;
-  font-weight: 800;
-  color: #1f3864;
-}
-
-.kr {
-  margin: 0;
-  font-size: 15px;
-  color: #595959;
-  line-height: 1.55;
 }
 
 .btn {

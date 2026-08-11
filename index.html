@@ -106,31 +106,29 @@
         <button type="button" class="linkish" id="btn-back">← 공부한 목록</button>
         <h2 id="detail-title" class="practice-title"></h2>
         <p id="detail-meta" class="practice-meta"></p>
-        <p id="detail-note" class="detail-note" hidden></p>
 
-        <button type="button" class="btn btn-navy btn-block" id="btn-open-video">
-          EBSe 영상 열기
-        </button>
-        <a id="detail-link" class="quiet-out" href="#" target="_blank" rel="noopener"
-          >새 탭으로 열기</a
-        >
-
-        <div class="card tip-card">
-          <p class="tip-title">따라 말하기</p>
-          <p class="kr">
+        <div class="detail-panel">
+          <div class="save-title">따라 말하기</div>
+          <p class="save-help">
             영상을 틀고 같은 속도로 따라 말해 보세요.<br />
-            기억에 남은 문장은 아래 메모에 적거나 말로 저장하세요.
+            기억에 남은 문장은 아래 <b>메모</b>에 적거나 말로 저장하세요.
           </p>
+          <button type="button" class="btn btn-navy btn-block" id="btn-open-video">
+            EBSe 영상 열기
+          </button>
+          <a id="detail-link" class="quiet-out" href="#" target="_blank" rel="noopener"
+            >새 탭으로 열기</a
+          >
         </div>
 
         <details class="memo-box toggle-panel" open>
           <summary class="toggle-summary">
-            <span class="save-title">메모</span>
+            <span class="save-title" id="memo-summary-title">메모</span>
             <span class="toggle-hint">접기</span>
           </summary>
           <div class="toggle-body">
             <p class="memo-help">
-              기억에 남은 문장을 적거나, 말로 말하면 글자로 넣습니다.<br />
+              이 회차에서 남긴 문장입니다. 직접 쓰거나 말로 넣으세요.<br />
               Chrome·Edge에서 잘 됩니다. (음성은 브라우저 음성인식으로 처리될 수 있습니다)
             </p>
             <div class="memo-lang">
