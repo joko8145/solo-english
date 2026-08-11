@@ -2,6 +2,9 @@
   "use strict";
 
   var KEY = "solo-english.v2";
+  var SYNC_KEY = "solo-english.sync.v1";
+  var GIST_DESC = "solo-english-list-v1";
+  var GIST_FILENAME = "solo-english.json";
 
   var PROGRAMS = [
     {
@@ -31,7 +34,6 @@
     try {
       var raw = localStorage.getItem(KEY);
       if (!raw) {
-        // migrate v1 episodes if present
         var old = localStorage.getItem("solo-english.v1");
         if (old) {
           var parsed = JSON.parse(old);
@@ -40,10 +42,11 @@
               id: ep.id || uid(),
               title: ep.title || "회차",
               url: ep.url,
-              programId: ep.programId || "other",
+              programId: ep.programId || "keun",
               note: ep.note || "",
               done: !!ep.done,
               createdAt: ep.createdAt || Date.now(),
+              updatedAt: ep.updatedAt || ep.createdAt || Date.now(),
             };
           });
           var st = { items: items, lastId: parsed.lastEpisodeId || null };
@@ -69,6 +72,24 @@
     );
   }
 
+  function loadSyncMeta() {
+    try {
+      var raw = localStorage.getItem(SYNC_KEY);
+      if (!raw) return { token: "", gistId: "" };
+      var data = JSON.parse(raw);
+      return { token: data.token || "", gistId: data.gistId || "" };
+    } catch (e) {
+      return { token: "", gistId: "" };
+    }
+  }
+
+  function saveSyncMeta() {
+    localStorage.setItem(
+      SYNC_KEY,
+      JSON.stringify({ token: syncMeta.token, gistId: syncMeta.gistId })
+    );
+  }
+
   function parseEbseUrl(raw) {
     try {
       var u = new URL(String(raw).trim());
@@ -83,9 +104,7 @@
     }
   }
 
-  function detectProgramId(parsed) {
-    var key = (parsed.pathKey || "").toLowerCase();
-    if (key.indexOf("keun") !== -1 || key.indexOf("10mins") !== -1) return "keun";
+  function detectProgramId() {
     return "keun";
   }
 
@@ -93,7 +112,7 @@
     return (
       PROGRAMS.find(function (p) {
         return p.id === id;
-      }) || { id: "other", name: "EBSe", desc: "", listUrl: "#" }
+      }) || PROGRAMS[0]
     );
   }
 
@@ -110,6 +129,183 @@
       .replace(/"/g, "&quot;");
   }
 
+  function touchItem(item, patch) {
+    return Object.assign({}, item, patch || {}, { updatedAt: Date.now() });
+  }
+
+  function mergeItems(localItems, remoteItems) {
+    var map = {};
+    function upsert(item) {
+      if (!item || !item.url) return;
+      var key = item.url;
+      var prev = map[key];
+      if (!prev) {
+        map[key] = Object.assign({}, item);
+        return;
+      }
+      var prevT = prev.updatedAt || prev.createdAt || 0;
+      var nextT = item.updatedAt || item.createdAt || 0;
+      var newer = nextT >= prevT ? item : prev;
+      var older = newer === item ? prev : item;
+      map[key] = {
+        id: newer.id || older.id || uid(),
+        title: newer.title || older.title,
+        url: key,
+        programId: newer.programId || older.programId || "keun",
+        note: (newer.note && newer.note.length >= (older.note || "").length
+          ? newer.note
+          : older.note) || "",
+        done: !!(newer.done || older.done),
+        createdAt: Math.min(newer.createdAt || nextT, older.createdAt || prevT) || Date.now(),
+        updatedAt: Math.max(prevT, nextT) || Date.now(),
+      };
+    }
+    (localItems || []).forEach(upsert);
+    (remoteItems || []).forEach(upsert);
+    return Object.keys(map).map(function (k) {
+      return map[k];
+    });
+  }
+
+  function exportPayload() {
+    return JSON.stringify(
+      { version: 1, updatedAt: Date.now(), items: state.items },
+      null,
+      2
+    );
+  }
+
+  function applyRemotePayload(payload, mode) {
+    var remoteItems = payload && Array.isArray(payload.items) ? payload.items : [];
+    if (mode === "replace") {
+      state.items = remoteItems;
+    } else {
+      state.items = mergeItems(state.items, remoteItems);
+    }
+    saveState();
+    renderList();
+  }
+
+  function setSyncStatus(msg, kind) {
+    ui.syncStatus.textContent = msg || "";
+    ui.syncStatus.classList.remove("is-error", "is-ok");
+    if (kind) ui.syncStatus.classList.add(kind);
+  }
+
+  function gistHeaders(token) {
+    return {
+      Accept: "application/vnd.github+json",
+      Authorization: "Bearer " + token,
+      "X-GitHub-Api-Version": "2022-11-28",
+      "Content-Type": "application/json",
+    };
+  }
+
+  function findSoloGist(token) {
+    return fetch("https://api.github.com/gists?per_page=100", {
+      headers: gistHeaders(token),
+    }).then(function (res) {
+      if (!res.ok) throw new Error("토큰을 확인하세요. (gist 권한 필요)");
+      return res.json();
+    }).then(function (list) {
+      return (list || []).find(function (g) {
+        return g.description === GIST_DESC;
+      }) || null;
+    });
+  }
+
+  function readGistItems(token, gistId) {
+    return fetch("https://api.github.com/gists/" + gistId, {
+      headers: gistHeaders(token),
+    }).then(function (res) {
+      if (!res.ok) throw new Error("Gist를 읽지 못했습니다.");
+      return res.json();
+    }).then(function (gist) {
+      var file = gist.files && gist.files[GIST_FILENAME];
+      if (!file || !file.content) return { items: [] };
+      return JSON.parse(file.content);
+    });
+  }
+
+  function pushToGist() {
+    var token = (ui.syncToken.value || syncMeta.token || "").trim();
+    if (!token) {
+      setSyncStatus("토큰을 입력해 주세요.", "is-error");
+      return;
+    }
+    syncMeta.token = token;
+    saveSyncMeta();
+    setSyncStatus("올리는 중…");
+    findSoloGist(token)
+      .then(function (found) {
+        var body = {
+          description: GIST_DESC,
+          public: false,
+          files: {},
+        };
+        body.files[GIST_FILENAME] = { content: exportPayload() };
+        if (found) {
+          return fetch("https://api.github.com/gists/" + found.id, {
+            method: "PATCH",
+            headers: gistHeaders(token),
+            body: JSON.stringify(body),
+          }).then(function (res) {
+            if (!res.ok) throw new Error("올리기에 실패했습니다.");
+            return found.id;
+          });
+        }
+        return fetch("https://api.github.com/gists", {
+          method: "POST",
+          headers: gistHeaders(token),
+          body: JSON.stringify(body),
+        }).then(function (res) {
+          if (!res.ok) throw new Error("Gist 만들기에 실패했습니다.");
+          return res.json().then(function (g) {
+            return g.id;
+          });
+        });
+      })
+      .then(function (gistId) {
+        syncMeta.gistId = gistId;
+        saveSyncMeta();
+        setSyncStatus("올림 완료 · 다른 기기에서 「받기」하세요.", "is-ok");
+      })
+      .catch(function (err) {
+        setSyncStatus(err.message || "올리기 실패", "is-error");
+      });
+  }
+
+  function pullFromGist() {
+    var token = (ui.syncToken.value || syncMeta.token || "").trim();
+    if (!token) {
+      setSyncStatus("토큰을 입력해 주세요.", "is-error");
+      return;
+    }
+    syncMeta.token = token;
+    saveSyncMeta();
+    setSyncStatus("받는 중…");
+    var chain = syncMeta.gistId
+      ? Promise.resolve({ id: syncMeta.gistId })
+      : findSoloGist(token);
+    chain
+      .then(function (found) {
+        if (!found) throw new Error("올린 목록이 없습니다. PC에서 먼저 「올리기」하세요.");
+        syncMeta.gistId = found.id;
+        saveSyncMeta();
+        return readGistItems(token, found.id);
+      })
+      .then(function (payload) {
+        applyRemotePayload(payload, "merge");
+        setSyncStatus(
+          "받기 완료 · 목록 " + state.items.length + "개로 맞춤",
+          "is-ok"
+        );
+      })
+      .catch(function (err) {
+        setSyncStatus(err.message || "받기 실패", "is-error");
+      });
+  }
+
   var ui = {
     viewList: $("#view-list"),
     viewDetail: $("#view-detail"),
@@ -122,6 +318,12 @@
     itemNote: $("#item-note"),
     addDone: $("#add-done"),
     programRow: $("#program-row"),
+    syncToken: $("#sync-token"),
+    syncStatus: $("#sync-status"),
+    btnSyncPush: $("#btn-sync-push"),
+    btnSyncPull: $("#btn-sync-pull"),
+    btnExport: $("#btn-export"),
+    btnImport: $("#btn-import"),
     btnBack: $("#btn-back"),
     detailTitle: $("#detail-title"),
     detailMeta: $("#detail-meta"),
@@ -138,10 +340,13 @@
   };
 
   var state = loadState();
+  var syncMeta = loadSyncMeta();
   var currentIndex = -1;
   var mediaRecorder = null;
   var recordedChunks = [];
   var objectUrl = null;
+
+  ui.syncToken.value = syncMeta.token || "";
 
   function currentItem() {
     return currentIndex >= 0 ? state.items[currentIndex] : null;
@@ -247,7 +452,7 @@
     if (j < 0 || j >= state.items.length) return;
     var list = state.items.slice();
     var item = list.splice(index, 1)[0];
-    list.splice(j, 0, item);
+    list.splice(j, 0, touchItem(item));
     state.items = list;
     saveState();
     renderList();
@@ -311,6 +516,7 @@
     if (dup && !confirm("이미 목록에 있는 주소입니다. 그래도 추가할까요?")) {
       return;
     }
+    var now = Date.now();
     state.items.push({
       id: uid(),
       title: ui.itemTitle.value.trim() || defaultTitle(parsed, programId),
@@ -318,7 +524,8 @@
       programId: programId,
       note: ui.itemNote.value.trim(),
       done: false,
-      createdAt: Date.now(),
+      createdAt: now,
+      updatedAt: now,
     });
     saveState();
     ui.addForm.reset();
@@ -346,12 +553,47 @@
     }
   });
 
+  ui.btnSyncPush.addEventListener("click", pushToGist);
+  ui.btnSyncPull.addEventListener("click", pullFromGist);
+  ui.syncToken.addEventListener("change", function () {
+    syncMeta.token = ui.syncToken.value.trim();
+    saveSyncMeta();
+  });
+
+  ui.btnExport.addEventListener("click", function () {
+    var text = exportPayload();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(
+        function () {
+          setSyncStatus("목록을 클립보드에 복사했습니다.", "is-ok");
+        },
+        function () {
+          window.prompt("복사하세요:", text);
+        }
+      );
+    } else {
+      window.prompt("복사하세요:", text);
+    }
+  });
+
+  ui.btnImport.addEventListener("click", function () {
+    var raw = window.prompt("다른 기기에서 복사한 목록 JSON을 붙여 넣으세요.");
+    if (!raw) return;
+    try {
+      var payload = JSON.parse(raw);
+      applyRemotePayload(payload, "merge");
+      setSyncStatus("붙여넣기 완료 · 목록 " + state.items.length + "개", "is-ok");
+    } catch (e) {
+      setSyncStatus("형식이 올바르지 않습니다.", "is-error");
+    }
+  });
+
   ui.btnBack.addEventListener("click", showList);
   ui.btnOpenVideo.addEventListener("click", openVideo);
   ui.btnSaveNote.addEventListener("click", function () {
     var item = currentItem();
     if (!item) return;
-    item = Object.assign({}, item, { note: ui.editNote.value.trim() });
+    item = touchItem(item, { note: ui.editNote.value.trim() });
     state.items[currentIndex] = item;
     saveState();
     if (item.note) {
@@ -366,14 +608,14 @@
   ui.btnDone.addEventListener("click", function () {
     var item = currentItem();
     if (!item) return;
-    state.items[currentIndex] = Object.assign({}, item, { done: true });
+    state.items[currentIndex] = touchItem(item, { done: true });
     saveState();
     showList();
   });
   ui.btnNext.addEventListener("click", function () {
     var item = currentItem();
     if (item && !item.done) {
-      state.items[currentIndex] = Object.assign({}, item, { done: true });
+      state.items[currentIndex] = touchItem(item, { done: true });
       saveState();
     }
     if (currentIndex + 1 < state.items.length) openItem(currentIndex + 1);

@@ -12,7 +12,15 @@ https://joko8145.github.io/solo-english/
 2. 주소를 **공부한 회차 추가**에 붙여 넣는다.
 3. 목록에서 열어 다시 따라 말한다.
 
-목록은 브라우저에만 저장됩니다. 폰과 PC는 각각 따로입니다.
+## 폰 ↔ PC 동기화
+
+브라우저 저장은 기기마다 다릅니다. 같은 GitHub 토큰으로 맞춥니다.
+
+1. GitHub → Settings → Developer settings → Personal access tokens (classic)
+2. `gist` 권한만 켠 토큰 생성
+3. Solo에서 토큰 입력 → **올리기** (한쪽) → 다른 기기에서 같은 토큰으로 **받기**
+
+토큰 없이 옮기려면 **목록 복사 / 목록 붙여넣기**를 쓰세요.
 
 ## 로컬
 

@@ -26,6 +26,28 @@
           </p>
         </div>
 
+        <div class="sync-box">
+          <div class="save-title">폰 ↔ PC 동기화</div>
+          <p class="save-help">
+            GitHub <b>Gist</b>로 목록을 맞춥니다. 두 기기에 같은 토큰만 넣으면 됩니다.<br />
+            토큰: GitHub → Settings → Developer settings → Personal access tokens<br />
+            (classic) <b>gist</b> 권한만 켜서 만드세요.
+          </p>
+          <label>
+            GitHub 토큰
+            <input id="sync-token" type="password" autocomplete="off" placeholder="ghp_..." />
+          </label>
+          <div class="sync-actions">
+            <button type="button" class="btn btn-navy" id="btn-sync-push">올리기</button>
+            <button type="button" class="btn btn-green sync-half" id="btn-sync-pull">받기</button>
+          </div>
+          <p class="sync-status" id="sync-status" aria-live="polite"></p>
+          <div class="sync-actions soft">
+            <button type="button" class="btn btn-nav" id="btn-export">목록 복사</button>
+            <button type="button" class="btn btn-nav" id="btn-import">목록 붙여넣기</button>
+          </div>
+        </div>
+
         <div class="save-box">
           <div class="save-title">공부한 회차 추가</div>
           <p class="save-help">
