@@ -6,7 +6,9 @@ body {
   margin: 0;
   font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕",
     sans-serif;
-  background: #f5f3ee;
+  background:
+    radial-gradient(ellipse 120% 60% at 50% -10%, #d9e4f5 0%, transparent 55%),
+    linear-gradient(180deg, #eef1f6 0%, #f5f3ee 42%, #f5f3ee 100%);
   color: #1f3864;
   min-height: 100vh;
 }
@@ -16,10 +18,12 @@ body {
 }
 
 .site-header {
-  background: #1f3864;
+  background:
+    linear-gradient(135deg, #1a2f56 0%, #1f3864 48%, #2a4a7a 100%);
   color: #fff;
-  padding: 18px 20px;
+  padding: 22px 20px 20px;
   text-align: center;
+  box-shadow: 0 8px 24px rgba(31, 56, 100, 0.18);
 }
 
 .site-header h1 {
@@ -168,21 +172,55 @@ main {
   color: #1f3864;
 }
 
-.save-box {
-  margin-top: 4px;
+.toggle-panel {
+  margin: 0 0 12px;
   border: 2px solid #1f3864;
   border-radius: 16px;
-  padding: 16px 14px;
   background: #fafaf6;
-  display: grid;
-  gap: 8px;
+  overflow: hidden;
 }
 
-.save-title {
-  text-align: center;
-  font-size: 13px;
+.toggle-panel.sync-panel {
+  background: #eaf1fb;
+}
+
+.toggle-panel.memo-panel {
+  background: #eaf1fb;
+  margin-top: 14px;
+}
+
+.toggle-panel > summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 16px;
+  cursor: pointer;
+  font-size: 14px;
   font-weight: 800;
   color: #1f3864;
+  user-select: none;
+}
+
+.toggle-panel > summary::-webkit-details-marker {
+  display: none;
+}
+
+.toggle-hint {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7f9e;
+}
+
+.toggle-panel[open] > summary {
+  border-bottom: 1px solid rgba(31, 56, 100, 0.12);
+}
+
+.toggle-body {
+  display: grid;
+  gap: 8px;
+  padding: 14px 14px 16px;
 }
 
 .save-help {
@@ -229,17 +267,8 @@ main {
   font-size: 13px;
 }
 
-.sync-box {
-  margin: 0 0 14px;
-  border: 2px solid #1f3864;
-  border-radius: 16px;
-  padding: 16px 14px;
-  background: #eaf1fb;
-  display: grid;
-  gap: 8px;
-}
-
-.sync-box label {
+.sync-panel label,
+.memo-panel label.memo-edit {
   display: grid;
   gap: 4px;
   font-size: 12.5px;
@@ -248,7 +277,7 @@ main {
   text-align: left;
 }
 
-.sync-box input {
+.sync-panel input {
   width: 100%;
   padding: 12px 10px;
   border-radius: 10px;
@@ -383,40 +412,92 @@ main {
   color: #4a4a44;
   font-size: 14px;
   line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.practice-stage {
+  position: relative;
+  margin: 4px 0 0;
+  padding: 22px 18px 18px;
+  border-radius: 18px;
+  overflow: hidden;
+  color: #fff;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.1) 0%, transparent 40%),
+    linear-gradient(160deg, #1a2f56 0%, #1f3864 45%, #2f5f8f 100%);
+  box-shadow: 0 14px 28px rgba(31, 56, 100, 0.22);
+  text-align: center;
+}
+
+.practice-stage::before {
+  content: "";
+  position: absolute;
+  inset: auto -20% -40% 20%;
+  height: 120%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.14), transparent 62%);
+  pointer-events: none;
+}
+
+.stage-kicker {
+  position: relative;
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #b8c8e0;
+}
+
+.stage-line {
+  position: relative;
+  margin: 0 0 14px;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+}
+
+.stage-steps {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.stage-steps span {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  font-size: 12px;
+  font-weight: 700;
+  color: #e8eef8;
+}
+
+.stage-cta {
+  position: relative;
+  margin-bottom: 8px;
+  background: #fff;
+  color: #1f3864;
+}
+
+.stage-cta:hover {
+  background: #f3f6fb;
+}
+
+.stage-link {
+  position: relative;
+  margin: 0;
+  color: #d5e0f2;
 }
 
 .quiet-out {
   display: inline-block;
-  margin: -6px 0 14px;
-  color: #1f3864;
   font-weight: 700;
   font-size: 13px;
-}
-
-.card {
-  background: #fff;
-  border: 2px solid #000;
-  border-radius: 14px;
-  padding: 22px 20px;
-  text-align: center;
-}
-
-.tip-card {
-  margin-bottom: 14px;
-}
-
-.tip-title {
-  margin: 0 0 8px;
-  font-size: 15px;
-  font-weight: 800;
-  color: #1f3864;
-}
-
-.kr {
-  margin: 0;
-  font-size: 15px;
-  color: #595959;
-  line-height: 1.55;
 }
 
 .btn {
@@ -464,74 +545,18 @@ main {
   color: #1f3864;
 }
 
-.btn-rec {
-  flex: 1;
-  background: #b03a2e;
-  color: #fff;
-  padding: 13px 8px;
-}
-
-.btn-rec-stop {
-  flex: 1;
-  background: #7a2a21;
-  color: #fff;
-  padding: 13px 8px;
-}
-
-.record-box {
-  margin-top: 4px;
-  border: 2px solid #b03a2e;
-  border-radius: 14px;
-  padding: 14px;
-  background: #fbefee;
-}
-
-.record-row {
-  display: flex;
-  gap: 8px;
-}
-
-.rec-hint {
-  text-align: center;
-  font-size: 11.5px;
-  color: #7a2a21;
-  margin: 8px 0 0;
-  line-height: 1.4;
-}
-
-.rec-audio {
-  width: 100%;
-  margin-top: 10px;
-}
-
-.memo-edit {
-  margin-top: 14px;
-}
-
-.memo-box {
-  margin-top: 14px;
-  border: 2px solid #1f3864;
-  border-radius: 14px;
-  padding: 14px;
-  background: #eaf1fb;
-  display: grid;
-  gap: 8px;
-}
-
-.memo-box .save-title {
-  margin: 0;
-}
-
 .memo-help {
   margin: 0;
   font-size: 12px;
   line-height: 1.45;
   color: #3d4f73;
+  text-align: center;
 }
 
 .memo-lang {
   display: flex;
   gap: 14px;
+  justify-content: center;
   font-size: 13px;
   font-weight: 700;
   color: #1f3864;
@@ -542,16 +567,6 @@ main {
   align-items: center;
   gap: 6px;
   font-weight: 700;
-}
-
-.memo-edit {
-  margin-top: 0;
-  display: grid;
-  gap: 4px;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: #1f3864;
-  text-align: left;
 }
 
 .memo-edit textarea {

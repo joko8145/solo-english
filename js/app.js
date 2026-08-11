@@ -355,9 +355,6 @@
     btnStt: $("#btn-stt"),
     btnSttStop: $("#btn-stt-stop"),
     sttStatus: $("#stt-status"),
-    btnRec: $("#btn-rec"),
-    btnRecStop: $("#btn-rec-stop"),
-    playback: $("#playback"),
     btnDone: $("#btn-done"),
     btnNext: $("#btn-next"),
   };
@@ -365,13 +362,30 @@
   var state = loadState();
   var syncMeta = loadSyncMeta();
   var currentIndex = -1;
-  var mediaRecorder = null;
-  var recordedChunks = [];
-  var objectUrl = null;
   var speechRec = null;
   var sttBaseNote = "";
 
   refreshTokenUI();
+  wireToggleHints();
+  maybeOpenSyncPanel();
+
+  function wireToggleHints() {
+    document.querySelectorAll(".toggle-panel").forEach(function (panel) {
+      var hint = panel.querySelector(".toggle-hint");
+      if (!hint) return;
+      function syncHint() {
+        hint.textContent = panel.open ? "접기" : "펼치기";
+      }
+      syncHint();
+      panel.addEventListener("toggle", syncHint);
+    });
+  }
+
+  function maybeOpenSyncPanel() {
+    var panel = $("#panel-sync");
+    if (!panel) return;
+    if (!syncMeta.token) panel.open = true;
+  }
 
   function currentItem() {
     return currentIndex >= 0 ? state.items[currentIndex] : null;
@@ -425,7 +439,6 @@
       );
       return;
     }
-    stopRec();
     stopStt(true);
     sttBaseNote = ui.editNote.value;
     speechRec = new SR();
@@ -511,8 +524,6 @@
     }
     ui.editNote.value = item.note || "";
     ui.detailLink.href = item.url;
-    ui.playback.hidden = true;
-    ui.playback.removeAttribute("src");
   }
 
   function renderList() {
@@ -590,45 +601,6 @@
     var item = currentItem();
     if (!item) return;
     window.open(item.url, "ebse-video", "popup=yes,width=900,height=600");
-  }
-
-  function startRec() {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      alert("이 브라우저에서는 녹음을 지원하지 않습니다.");
-      return;
-    }
-    stopStt(true);
-    navigator.mediaDevices
-      .getUserMedia({ audio: true })
-      .then(function (stream) {
-        recordedChunks = [];
-        mediaRecorder = new MediaRecorder(stream);
-        mediaRecorder.ondataavailable = function (e) {
-          if (e.data.size > 0) recordedChunks.push(e.data);
-        };
-        mediaRecorder.onstop = function () {
-          stream.getTracks().forEach(function (t) {
-            t.stop();
-          });
-          ui.btnRec.disabled = false;
-          ui.btnRecStop.disabled = true;
-          var blob = new Blob(recordedChunks, { type: "audio/webm" });
-          if (objectUrl) URL.revokeObjectURL(objectUrl);
-          objectUrl = URL.createObjectURL(blob);
-          ui.playback.src = objectUrl;
-          ui.playback.hidden = false;
-        };
-        mediaRecorder.start();
-        ui.btnRec.disabled = true;
-        ui.btnRecStop.disabled = false;
-      })
-      .catch(function () {
-        alert("마이크 권한을 허용해 주세요.");
-      });
-  }
-
-  function stopRec() {
-    if (mediaRecorder && mediaRecorder.state === "recording") mediaRecorder.stop();
   }
 
   ui.addForm.addEventListener("submit", function (e) {
@@ -739,8 +711,6 @@
   ui.btnSttStop.addEventListener("click", function () {
     stopStt(false);
   });
-  ui.btnRec.addEventListener("click", startRec);
-  ui.btnRecStop.addEventListener("click", stopRec);
   ui.btnDone.addEventListener("click", function () {
     var item = currentItem();
     if (!item) return;
