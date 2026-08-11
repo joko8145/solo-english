@@ -382,9 +382,10 @@
   }
 
   function maybeOpenSyncPanel() {
-    var panel = $("#panel-sync");
-    if (!panel) return;
-    if (!syncMeta.token) panel.open = true;
+    var syncPanel = $("#panel-sync");
+    var addPanel = $("#panel-add");
+    if (syncPanel && !syncMeta.token) syncPanel.open = true;
+    if (addPanel && (!state.items || !state.items.length)) addPanel.open = true;
   }
 
   function currentItem() {

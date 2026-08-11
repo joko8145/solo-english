@@ -26,9 +26,9 @@
           </p>
         </div>
 
-        <details class="toggle-panel sync-panel" id="panel-sync">
-          <summary>
-            <span>폰 ↔ PC 동기화</span>
+        <details class="sync-box toggle-panel" id="panel-sync">
+          <summary class="toggle-summary">
+            <span class="save-title">폰 ↔ PC 동기화</span>
             <span class="toggle-hint">펼치기</span>
           </summary>
           <div class="toggle-body">
@@ -62,10 +62,10 @@
           </div>
         </details>
 
-        <details class="toggle-panel add-panel" id="panel-add" open>
-          <summary>
-            <span>공부한 회차 추가</span>
-            <span class="toggle-hint">접기</span>
+        <details class="save-box toggle-panel" id="panel-add">
+          <summary class="toggle-summary">
+            <span class="save-title">공부한 회차 추가</span>
+            <span class="toggle-hint">펼치기</span>
           </summary>
           <div class="toggle-body">
             <p class="save-help">
@@ -108,25 +108,24 @@
         <p id="detail-meta" class="practice-meta"></p>
         <p id="detail-note" class="detail-note" hidden></p>
 
-        <div class="practice-stage">
-          <p class="stage-kicker">따라 말하기</p>
-          <p class="stage-line">영상 듣고 → 같이 말하고 → 문장은 메모로</p>
-          <div class="stage-steps">
-            <span>1. 영상</span>
-            <span>2. 따라 말기</span>
-            <span>3. 메모</span>
-          </div>
-          <button type="button" class="btn btn-navy btn-block stage-cta" id="btn-open-video">
-            EBSe 영상 열기
-          </button>
-          <a id="detail-link" class="quiet-out stage-link" href="#" target="_blank" rel="noopener"
-            >새 탭으로 열기</a
-          >
+        <button type="button" class="btn btn-navy btn-block" id="btn-open-video">
+          EBSe 영상 열기
+        </button>
+        <a id="detail-link" class="quiet-out" href="#" target="_blank" rel="noopener"
+          >새 탭으로 열기</a
+        >
+
+        <div class="card tip-card">
+          <p class="tip-title">따라 말하기</p>
+          <p class="kr">
+            영상을 틀고 같은 속도로 따라 말해 보세요.<br />
+            기억에 남은 문장은 아래 메모에 적거나 말로 저장하세요.
+          </p>
         </div>
 
-        <details class="toggle-panel memo-panel" open>
-          <summary>
-            <span>메모 · 말로 저장</span>
+        <details class="memo-box toggle-panel" open>
+          <summary class="toggle-summary">
+            <span class="save-title">메모</span>
             <span class="toggle-hint">접기</span>
           </summary>
           <div class="toggle-body">
