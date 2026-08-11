@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <title>Solo English — 공부한 목록</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <h1>Solo English</h1>
+      <p>매일 10분 영어 — 공부한 회차를 남기고 따라 말하세요.</p>
+    </header>
+
+    <main>
+      <section id="view-list">
+        <div class="tabs-card">
+          <div class="list-head">
+            <h2>공부한 목록</h2>
+            <span class="list-count" id="list-count">0개</span>
+          </div>
+          <p class="list-desc">위가 먼저 공부한(또는 다시 볼) 회차입니다.</p>
+          <div id="study-list" class="tabs"></div>
+          <p class="hint-center" id="list-empty" hidden>
+            아직 없습니다. 아래에서 EBSe 주소를 넣어 공부한 회차를 추가하세요.
+          </p>
+        </div>
+
+        <div class="save-box">
+          <div class="save-title">공부한 회차 추가</div>
+          <p class="save-help">
+            EBSe에서 본 회차 주소를 붙여 넣으면 목록에 저장됩니다.<br />
+            영상 속 문장은 자동으로 가져오지 않습니다.
+          </p>
+          <form id="add-form" class="form">
+            <label>
+              EBSe 주소
+              <input
+                id="item-url"
+                type="url"
+                required
+                placeholder="https://home.ebse.co.kr/..."
+              />
+            </label>
+            <label>
+              제목 (선택)
+              <input id="item-title" type="text" placeholder="비우면 프로그램명·번호로 저장" />
+            </label>
+            <label>
+              메모 (선택)
+              <input id="item-note" type="text" placeholder="예: 카페 주문 표현 / 다시 볼 것" />
+            </label>
+            <button type="submit" class="btn btn-green">목록에 추가</button>
+          </form>
+          <p class="save-done" id="add-done" hidden>추가됨</p>
+        </div>
+
+        <div class="section-block">
+          <h2 class="section-label">매일 10분 영어</h2>
+          <div class="program-links" id="program-row"></div>
+        </div>
+      </section>
+
+      <section id="view-detail" hidden>
+        <button type="button" class="linkish" id="btn-back">← 공부한 목록</button>
+        <h2 id="detail-title" class="practice-title"></h2>
+        <p id="detail-meta" class="practice-meta"></p>
+        <p id="detail-note" class="detail-note" hidden></p>
+
+        <button type="button" class="btn btn-navy btn-block" id="btn-open-video">
+          EBSe 영상 열기
+        </button>
+        <a id="detail-link" class="quiet-out" href="#" target="_blank" rel="noopener"
+          >새 탭으로 열기</a
+        >
+
+        <div class="card tip-card">
+          <p class="tip-title">따라 말하기</p>
+          <p class="kr">
+            영상을 틀고 같은 속도로 따라 말해 보세요.<br />
+            끝나면 아래에서 완료로 표시할 수 있습니다.
+          </p>
+        </div>
+
+        <div class="record-box">
+          <div class="record-row">
+            <button type="button" class="btn btn-rec" id="btn-rec">녹음 시작</button>
+            <button type="button" class="btn btn-rec-stop" id="btn-rec-stop" disabled>
+              녹음 종료
+            </button>
+          </div>
+          <p class="rec-hint">따라 말한 목소리를 남겨 두고 싶을 때 사용하세요.</p>
+          <audio id="playback" class="rec-audio" controls hidden></audio>
+        </div>
+
+        <label class="memo-edit">
+          메모 수정
+          <input id="edit-note" type="text" placeholder="메모" />
+        </label>
+        <button type="button" class="btn btn-nav btn-block-soft" id="btn-save-note">
+          메모 저장
+        </button>
+
+        <div class="nav-row end-row">
+          <button type="button" class="btn btn-nav" id="btn-done">공부 완료</button>
+          <button type="button" class="btn btn-navy" id="btn-next">다음 회차</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="js/app.js"></script>
+  </body>
+</html>
