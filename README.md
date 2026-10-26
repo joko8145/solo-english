@@ -2,6 +2,8 @@
 
 유튜브(하루영단어·여행영어 등)와 EBSe 회차를 목록에 남기고, 완료하면 아래로 보내며 따라 말하는 로컬/웹 앱입니다.
 
+**미니멀습관허브와 별도로 계속 사용할 수 있습니다.** 허브 Abroad 탭에도 비슷한 목록이 있지만, 디자인·저장 공간이 다릅니다 (`solo-english.v2` vs 허브 `mhh_abroad_study_v1`).
+
 ## 사이트
 
 https://joko8145.github.io/solo-english/
