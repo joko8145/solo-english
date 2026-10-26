@@ -9,7 +9,7 @@
   <body>
     <header class="site-header">
       <h1>Solo English</h1>
-      <p>매일 10분 영어 — 공부한 회차를 남기고 따라 말하세요.</p>
+      <p>유튜브·EBSe 회차를 남기고, 완료하면 아래로 — 따라 말하세요.</p>
     </header>
 
     <main>
@@ -22,7 +22,7 @@
           <p class="list-desc">공부할 회차와 완료한 회차를 나눠 보여 줍니다.</p>
           <div id="study-list" class="tabs"></div>
           <p class="hint-center" id="list-empty" hidden>
-            아직 없습니다. 아래에서 EBSe 주소를 넣어 공부할 회차를 추가하세요.
+            아직 없습니다. 아래에서 YouTube 또는 EBSe 주소를 넣어 추가하세요.
           </p>
         </div>
 
@@ -69,22 +69,24 @@
           </summary>
           <div class="toggle-body">
             <p class="save-help">
-              EBSe에서 본 회차 주소를 붙여 넣으면 목록에 저장됩니다.<br />
+              YouTube(하루영단어·여행영어 등) 또는 EBSe 회차 주소를 붙여 넣으면
+              목록에 저장됩니다. 플레이리스트 주소가 있으면 프로그램이 자동으로
+              잡힙니다.<br />
               영상 속 문장은 자동으로 가져오지 않습니다.
             </p>
             <form id="add-form" class="form">
               <label>
-                EBSe 주소
+                YouTube / EBSe 주소
                 <input
                   id="item-url"
                   type="url"
                   required
-                  placeholder="https://home.ebse.co.kr/..."
+                  placeholder="https://www.youtube.com/watch?v=... 또는 EBSe"
                 />
               </label>
               <label>
                 제목 (선택)
-                <input id="item-title" type="text" placeholder="비우면 프로그램명·번호로 저장" />
+                <input id="item-title" type="text" placeholder="비우면 프로그램명·영상 ID로 저장" />
               </label>
               <label>
                 메모 (선택)
@@ -96,8 +98,8 @@
           </div>
         </details>
 
-        <div class="section-block">
-          <h2 class="section-label">매일 10분 영어</h2>
+        <div class="section-block" id="section-programs">
+          <h2 class="section-label">프로그램 · 플레이리스트</h2>
           <div class="program-links" id="program-row"></div>
         </div>
       </section>
@@ -119,7 +121,7 @@
             </p>
             <div class="detail-actions">
               <button type="button" class="btn btn-navy" id="btn-open-video">
-                EBSe 영상 열기
+                영상 열기
               </button>
               <a id="detail-link" class="btn btn-nav" href="#" target="_blank" rel="noopener"
                 >새 탭으로 열기</a

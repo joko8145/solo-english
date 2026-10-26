@@ -8,11 +8,46 @@
 
   var PROGRAMS = [
     {
+      id: "daily",
+      name: "하루영단어",
+      desc: "유튜브 · 평일 단어·예문",
+      listUrl:
+        "https://www.youtube.com/playlist?list=PLpzicmn_JfA6o30ftj2HEY42Dzp7Qi2bM",
+      listIds: ["PLpzicmn_JfA6o30ftj2HEY42Dzp7Qi2bM"],
+    },
+    {
+      id: "travel",
+      name: "여행영어",
+      desc: "유튜브 · 해외 상황 회화",
+      listUrl:
+        "https://www.youtube.com/playlist?list=PLpzicmn_JfA5WxtVLoGHJzwIt_kHgoM1E",
+      listIds: [
+        "PLpzicmn_JfA5WxtVLoGHJzwIt_kHgoM1E",
+        "PLpzicmn_JfA6uqPSdczdgt2tnAMsjbQyZ",
+      ],
+    },
+    {
+      id: "situation",
+      name: "상황영어",
+      desc: "유튜브 · 여행 보완",
+      listUrl:
+        "https://www.youtube.com/playlist?list=PLpzicmn_JfA68xwbAdTq_rb0_TWAAUKIh",
+      listIds: ["PLpzicmn_JfA68xwbAdTq_rb0_TWAAUKIh"],
+    },
+    {
       id: "keun",
       name: "매일 10분 영어",
-      desc: "이근철의 하루 딱! 한문장",
+      desc: "EBSe · 이근철 한문장",
       listUrl:
         "https://home.ebse.co.kr/10mins_keun/replay/3/list?courseId=ER2017H0LGC01ZZ&stepId=ET2017H0LGC0101&lectId=20064419",
+      listIds: [],
+    },
+    {
+      id: "yt",
+      name: "YouTube",
+      desc: "기타 유튜브 영상",
+      listUrl: "https://www.youtube.com/",
+      listIds: [],
     },
   ];
 
@@ -95,8 +130,11 @@
       var u = new URL(String(raw).trim());
       if (u.hostname.indexOf("ebse.co.kr") === -1) return null;
       return {
+        kind: "ebse",
         href: u.href,
         lectId: u.searchParams.get("lectId") || "",
+        videoId: "",
+        listId: "",
         pathKey: u.pathname.split("/").filter(Boolean)[0] || "",
       };
     } catch (e) {
@@ -104,21 +142,87 @@
     }
   }
 
-  function detectProgramId() {
-    return "keun";
+  function parseYoutubeUrl(raw) {
+    try {
+      var u = new URL(String(raw).trim());
+      var host = u.hostname.replace(/^www\./, "");
+      if (
+        host !== "youtube.com" &&
+        host !== "m.youtube.com" &&
+        host !== "music.youtube.com" &&
+        host !== "youtu.be"
+      ) {
+        return null;
+      }
+      var videoId = "";
+      if (host === "youtu.be") {
+        videoId = u.pathname.split("/").filter(Boolean)[0] || "";
+      } else if (u.pathname.indexOf("/shorts/") === 0) {
+        videoId = u.pathname.split("/").filter(Boolean)[1] || "";
+      } else if (u.pathname.indexOf("/embed/") === 0) {
+        videoId = u.pathname.split("/").filter(Boolean)[1] || "";
+      } else {
+        videoId = u.searchParams.get("v") || "";
+      }
+      if (!videoId) return null;
+      videoId = videoId.replace(/[^a-zA-Z0-9_-]/g, "");
+      if (!videoId) return null;
+      var listId = u.searchParams.get("list") || "";
+      var href = "https://www.youtube.com/watch?v=" + videoId;
+      if (listId) href += "&list=" + encodeURIComponent(listId);
+      return {
+        kind: "youtube",
+        href: href,
+        lectId: "",
+        videoId: videoId,
+        listId: listId,
+        pathKey: "",
+      };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function parseMediaUrl(raw) {
+    return parseYoutubeUrl(raw) || parseEbseUrl(raw);
+  }
+
+  function detectProgramId(parsed) {
+    if (!parsed) return "yt";
+    if (parsed.kind === "ebse") return "keun";
+    if (parsed.kind === "youtube" && parsed.listId) {
+      for (var i = 0; i < PROGRAMS.length; i++) {
+        var p = PROGRAMS[i];
+        if (p.listIds && p.listIds.indexOf(parsed.listId) !== -1) return p.id;
+      }
+    }
+    return "yt";
   }
 
   function programById(id) {
     return (
       PROGRAMS.find(function (p) {
         return p.id === id;
-      }) || PROGRAMS[0]
+      }) ||
+      PROGRAMS.find(function (p) {
+        return p.id === "yt";
+      }) ||
+      PROGRAMS[0]
     );
   }
 
   function defaultTitle(parsed, programId) {
     var name = programById(programId).name;
-    return parsed.lectId ? name + " · " + parsed.lectId : name + " 회차";
+    if (parsed.kind === "youtube" && parsed.videoId) {
+      return name + " · " + parsed.videoId;
+    }
+    if (parsed.lectId) return name + " · " + parsed.lectId;
+    return name + " 회차";
+  }
+
+  function isYoutubeItem(item) {
+    if (!item || !item.url) return false;
+    return /youtu\.be|youtube\.com/i.test(item.url);
   }
 
   function escapeHtml(str) {
@@ -151,7 +255,7 @@
         id: newer.id || older.id || uid(),
         title: newer.title || older.title,
         url: key,
-        programId: newer.programId || older.programId || "keun",
+        programId: newer.programId || older.programId || "yt",
         note: (newer.note && newer.note.length >= (older.note || "").length
           ? newer.note
           : older.note) || "",
@@ -349,6 +453,7 @@
     detailMeta: $("#detail-meta"),
     detailLink: $("#detail-link"),
     btnOpenVideo: $("#btn-open-video"),
+    sectionPrograms: $("#section-programs"),
     editNote: $("#edit-note"),
     memoSummaryTitle: $("#memo-summary-title"),
     btnSaveNote: $("#btn-save-note"),
@@ -526,6 +631,11 @@
     ui.editNote.value = item.note || "";
     updateMemoSummary(item.note);
     ui.detailLink.href = item.url;
+    if (ui.btnOpenVideo) {
+      ui.btnOpenVideo.textContent = isYoutubeItem(item)
+        ? "YouTube 영상 열기"
+        : "EBSe 영상 열기";
+    }
   }
 
   function renderList() {
@@ -619,17 +729,26 @@
   }
 
   function renderPrograms() {
-    ui.programRow.innerHTML = PROGRAMS.map(function (p) {
-      return (
-        '<a class="program-chip" href="' +
-        p.listUrl +
-        '" target="_blank" rel="noopener">' +
-        escapeHtml(p.name) +
-        "<small>" +
-        escapeHtml(p.desc) +
-        " · 목록 열기</small></a>"
-      );
-    }).join("");
+    var chips = PROGRAMS.filter(function (p) {
+      return p.id !== "yt";
+    });
+    ui.programRow.innerHTML = chips
+      .map(function (p) {
+        return (
+          '<a class="program-chip" href="' +
+          p.listUrl +
+          '" target="_blank" rel="noopener">' +
+          escapeHtml(p.name) +
+          "<small>" +
+          escapeHtml(p.desc) +
+          " · 목록 열기</small></a>"
+        );
+      })
+      .join("");
+    if (ui.sectionPrograms) {
+      ui.sectionPrograms.querySelector(".section-label").textContent =
+        "프로그램 · 플레이리스트";
+    }
   }
 
   function moveItem(index, dir) {
@@ -655,19 +774,31 @@
   function openVideo() {
     var item = currentItem();
     if (!item) return;
-    window.open(item.url, "ebse-video", "popup=yes,width=900,height=600");
+    var winName = isYoutubeItem(item) ? "solo-youtube" : "solo-ebse";
+    window.open(item.url, winName, "popup=yes,width=900,height=600");
+  }
+
+  function sameMediaUrl(a, b) {
+    if (a === b) return true;
+    var pa = parseMediaUrl(a);
+    var pb = parseMediaUrl(b);
+    if (!pa || !pb || pa.kind !== pb.kind) return false;
+    if (pa.kind === "youtube") return pa.videoId === pb.videoId;
+    return pa.href === pb.href;
   }
 
   ui.addForm.addEventListener("submit", function (e) {
     e.preventDefault();
-    var parsed = parseEbseUrl(ui.itemUrl.value);
+    var parsed = parseMediaUrl(ui.itemUrl.value);
     if (!parsed) {
-      alert("EBSe 주소(home.ebse.co.kr)를 붙여 넣어 주세요.");
+      alert(
+        "YouTube 주소(youtube.com / youtu.be) 또는 EBSe 주소(home.ebse.co.kr)를 붙여 넣어 주세요."
+      );
       return;
     }
     var programId = detectProgramId(parsed);
     var dup = state.items.some(function (it) {
-      return it.url === parsed.href;
+      return sameMediaUrl(it.url, parsed.href);
     });
     if (dup && !confirm("이미 목록에 있는 주소입니다. 그래도 추가할까요?")) {
       return;
